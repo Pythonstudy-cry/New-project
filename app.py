@@ -16,8 +16,13 @@ from flask import Flask, render_template, request, jsonify
 from matplotlib import font_manager, rc
 import sys
 import numpy as np
+import logging
 from create_db import search_companies
 from finance_analysis import analyze_financial_data
+
+# 로깅 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # 한글 폰트 설정
 def set_korean_font():
@@ -26,26 +31,31 @@ def set_korean_font():
         if os.path.exists('/app'):
             # Docker 환경
             plt.rc('font', family='DejaVu Sans')
+            logger.info("Docker 환경에서 DejaVu Sans 폰트 사용")
         # 윈도우의 경우 맑은 고딕 폰트 사용
         elif sys.platform == 'win32':
             font_path = "C:/Windows/Fonts/malgun.ttf"
             if os.path.exists(font_path):
                 font_name = font_manager.FontProperties(fname=font_path).get_name()
                 plt.rc('font', family=font_name)
+                logger.info(f"Windows 환경에서 {font_name} 폰트 사용")
             else:
                 plt.rc('font', family='DejaVu Sans')
+                logger.info("Windows 환경에서 DejaVu Sans 폰트 사용")
         # Mac의 경우 애플고딕 폰트 사용
         elif sys.platform == 'darwin':
             rc('font', family='AppleGothic')
+            logger.info("Mac 환경에서 AppleGothic 폰트 사용")
         # 리눅스의 경우 나눔고딕 폰트 사용
         else:
             rc('font', family='NanumGothic')
+            logger.info("Linux 환경에서 NanumGothic 폰트 사용")
         
         # 마이너스 기호 표시 설정
         matplotlib.rcParams['axes.unicode_minus'] = False
         return True
     except Exception as e:
-        print(f"한글 폰트 설정에 실패했습니다: {e}")
+        logger.error(f"한글 폰트 설정에 실패했습니다: {e}")
         # 기본 폰트로 설정
         plt.rc('font', family='DejaVu Sans')
         matplotlib.rcParams['axes.unicode_minus'] = False
@@ -58,7 +68,7 @@ load_dotenv()
 API_KEY = os.getenv('OPEN_DART_API_KEY')
 
 if not API_KEY:
-    print("Error: OPEN_DART_API_KEY가 .env 파일에 설정되지 않았습니다.")
+    logger.error("Error: OPEN_DART_API_KEY가 .env 파일에 설정되지 않았습니다.")
     exit(1)
 
 # Flask 앱 생성
@@ -100,11 +110,13 @@ def get_financial_data(corp_code, bsns_year, reprt_code):
     response = requests.get(url, params=params)
     
     if response.status_code != 200:
+        logger.error(f"재무제표 데이터 요청 실패 (Status Code: {response.status_code})")
         return None
     
     data = response.json()
     
     if data['status'] != '000':
+        logger.error(f"재무제표 데이터 요청 실패 (Status: {data['status']})")
         return None
     
     return data
@@ -121,6 +133,7 @@ def fig_to_base64(fig):
 # 재무제표 데이터 처리 및 시각화
 def process_and_visualize(financial_data):
     if not financial_data or 'list' not in financial_data:
+        logger.warning("재무제표 데이터가 비어있거나 예상과 다릅니다.")
         return None, None, None, None
     
     # 데이터프레임 생성
@@ -283,7 +296,7 @@ def process_and_visualize(financial_data):
                 plt.tight_layout()
                 balance_img = fig_to_base64(fig)
             except Exception as e:
-                print(f"자산-부채-자본 관계 그래프 생성 중 오류 발생: {e}")
+                logger.error(f"자산-부채-자본 관계 그래프 생성 중 오류 발생: {e}")
         
         # 3. 손익계산서 시각화 (당기, 전기만)
         if not is_data.empty:
@@ -367,9 +380,9 @@ def process_and_visualize(financial_data):
                 plt.tight_layout()
                 ratio_img = fig_to_base64(fig)
             except (IndexError, ValueError) as e:
-                print(f"재무비율 계산 중 오류 발생: {e}")
+                logger.error(f"재무비율 계산 중 오류 발생: {e}")
     except Exception as e:
-        print(f"그래프 생성 중 오류 발생: {e}")
+        logger.error(f"그래프 생성 중 오류 발생: {e}")
     
     return bs_img, is_img, ratio_img, balance_img
 
