@@ -71,8 +71,14 @@ def set_korean_font():
         plt.style.use('default')
         sns.set_palette("husl")
         
-        # 폰트 캐시 초기화
-        font_manager._rebuild()
+        # 폰트 캐시 초기화 (버전 호환성을 위해 try-except 사용)
+        try:
+            font_manager._rebuild()
+        except AttributeError:
+            try:
+                font_manager.fontManager.cache_clear()
+            except:
+                pass  # 폰트 캐시 초기화 실패해도 계속 진행
         
         return True
     except Exception as e:
