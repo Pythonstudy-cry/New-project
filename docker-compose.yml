@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - OPEN_DART_API_KEY=1f3508a8dc4fe5b890378689198d66851e639340
+      - GEMINI_API_KEY=AIzaSyAt4OFtMd80ORW37x7GwU_50CTPaXB540I
+    volumes:
+      - .:/app
+    restart: unless-stopped 
