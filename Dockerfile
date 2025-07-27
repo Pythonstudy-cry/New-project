@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 # Python 의존성 파일 복사
 COPY requirements.txt .
 
-# Python 패키지 설치 (가상환경 없이)
+# Python 패키지 설치
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
@@ -28,6 +28,7 @@ ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
+ENV MPLBACKEND=Agg
 
-# 애플리케이션 실행 (단일 워커, 긴 타임아웃)
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--timeout", "300", "--preload", "--log-level", "info", "app:app"] 
+# 애플리케이션 실행 (더 안정적인 설정)
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--timeout", "300", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100", "--log-level", "info", "app:app"] 
