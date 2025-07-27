@@ -7,6 +7,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    fontconfig \
     fonts-dejavu \
     fonts-noto-cjk \
     fonts-noto-cjk-extra \
