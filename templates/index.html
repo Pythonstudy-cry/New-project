@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>재무제표 시각화</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 한글 폰트 추가 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -19,7 +23,9 @@
         body {
             padding: 20px;
             background-color: var(--light-bg);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', '돋움', 'Arial', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         .container {
@@ -30,11 +36,16 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', '돋움', 'Arial', sans-serif;
+            font-weight: 600;
+        }
+        
         h1 {
             color: var(--primary-color);
             margin-bottom: 30px;
             text-align: center;
-            font-weight: 600;
+            font-weight: 700;
         }
         
         .form-group {
@@ -45,6 +56,7 @@
             border: 2px solid #bdc3c7;
             border-radius: 8px;
             transition: all 0.3s ease;
+            font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', '돋움', 'Arial', sans-serif;
         }
         
         .form-control:focus, .form-select:focus {
@@ -56,6 +68,7 @@
             border-radius: 8px;
             font-weight: 500;
             transition: all 0.3s ease;
+            font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', '돋움', 'Arial', sans-serif;
         }
         
         .btn-primary {
@@ -118,6 +131,7 @@
             background-color: #fdf2f2;
             border-radius: 5px;
             border-left: 4px solid var(--accent-color);
+            font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', '돋움', 'Arial', sans-serif;
         }
         
         .company-list {
@@ -133,6 +147,7 @@
             border-radius: 8px;
             transition: all 0.3s ease;
             background-color: white;
+            font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', '돋움', 'Arial', sans-serif;
         }
         
         .company-item:hover {
@@ -153,6 +168,7 @@
             font-weight: 600;
             padding-bottom: 10px;
             border-bottom: 2px solid var(--light-bg);
+            font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', '돋움', 'Arial', sans-serif;
         }
         
         .analysis-text {
@@ -160,6 +176,7 @@
             line-height: 1.8;
             white-space: pre-line;
             color: var(--primary-color);
+            font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', '돋움', 'Arial', sans-serif;
         }
         
         .analysis-text br {
@@ -174,6 +191,7 @@
             border-radius: 8px;
             padding: 25px !important;
             border: 2px solid #bdc3c7;
+            font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', '돋움', 'Arial', sans-serif;
         }
         
         .ai-analysis-section {
@@ -207,6 +225,7 @@
             font-weight: 600;
             color: var(--primary-color);
             margin-bottom: 8px;
+            font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', '돋움', 'Arial', sans-serif;
         }
         
         .input-group .btn {
@@ -217,6 +236,23 @@
         .input-group .form-control {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
+        }
+        
+        /* 한글 텍스트 렌더링 최적화 */
+        * {
+            text-rendering: optimizeLegibility;
+        }
+        
+        /* 플레이스홀더 텍스트 스타일 */
+        ::placeholder {
+            font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic', 'Dotum', '돋움', 'Arial', sans-serif;
+            color: #6c757d;
+        }
+        
+        /* 선택된 텍스트 스타일 */
+        ::selection {
+            background-color: var(--secondary-color);
+            color: white;
         }
     </style>
 </head>

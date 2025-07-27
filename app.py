@@ -53,6 +53,20 @@ def set_korean_font():
         
         # 마이너스 기호 표시 설정
         matplotlib.rcParams['axes.unicode_minus'] = False
+        
+        # 폰트 크기 및 스타일 설정
+        plt.rcParams['font.size'] = 10
+        plt.rcParams['axes.titlesize'] = 12
+        plt.rcParams['axes.labelsize'] = 10
+        plt.rcParams['xtick.labelsize'] = 9
+        plt.rcParams['ytick.labelsize'] = 9
+        plt.rcParams['legend.fontsize'] = 9
+        plt.rcParams['figure.titlesize'] = 14
+        
+        # 그래프 스타일 설정
+        plt.style.use('default')
+        sns.set_palette("husl")
+        
         return True
     except Exception as e:
         logger.error(f"한글 폰트 설정에 실패했습니다: {e}")
