@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재무제표 시각화</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-bg: #ecf0f1;
+            --dark-bg: #34495e;
+        }
+        
+        body {
+            padding: 20px;
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            max-width: 1200px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #229954;
+            border-color: #229954;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+            border-color: #e67e22;
+        }
+        
+        .chart-container {
+            margin-top: 30px;
+            text-align: center;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-image {
+            max-width: 100%;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .error-message {
+            color: var(--accent-color);
+            margin: 10px 0;
+            display: none;
+            padding: 10px;
+            background-color: #fdf2f2;
+            border-radius: 5px;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .company-list {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .company-item {
+            cursor: pointer;
+            padding: 15px;
+            margin: 8px 0;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+        
+        .company-item:hover {
+            background-color: var(--light-bg);
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .chart-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-bg);
+        }
+        
+        .analysis-text {
+            text-align: left;
+            line-height: 1.8;
+            white-space: pre-line;
+            color: var(--primary-color);
+        }
+        
+        .analysis-text br {
+            margin-bottom: 15px;
+        }
+        
+        #ai-analysis-content {
+            max-height: 500px;
+            overflow-y: auto;
+            text-align: left;
+            background-color: var(--light-bg);
+            border-radius: 8px;
+            padding: 25px !important;
+            border: 2px solid #bdc3c7;
+        }
+        
+        .ai-analysis-section {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .ai-analysis-section .chart-title {
+            color: white;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .spinner-border {
+            color: var(--secondary-color) !important;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+        
+        .input-group .btn {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        
+        .input-group .form-control {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>재무제표 시각화</h1>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="company-name" class="form-label">회사명</label>
+                    <div class="input-group">
+                        <input type="text" id="company-name" class="form-control" placeholder="회사명을 입력하세요">
+                        <button id="search-btn" class="btn btn-primary">검색</button>
+                    </div>
+                </div>
+                
+                <div id="company-search-loading" class="loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>회사 검색 중...</p>
+                </div>
+                
+                <div id="company-search-error" class="error-message"></div>
+                
+                <div id="company-list" class="company-list">
+                    <h5>검색 결과</h5>
+                    <div id="company-items"></div>
+                </div>
+            </div>
+            
+            <div class="col-md-6" id="financial-form" style="display: none;">
+                <div class="form-group">
+                    <label for="bsns-year" class="form-label">사업연도</label>
+                    <select id="bsns-year" class="form-select">
+                        <option value="">사업연도를 선택하세요</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reprt-code" class="form-label">보고서 종류</label>
+                    <select id="reprt-code" class="form-select">
+                        <option value="11011">사업보고서</option>
+                        <option value="11012">반기보고서</option>
+                        <option value="11013">1분기보고서</option>
+                        <option value="11014">3분기보고서</option>
+                    </select>
+                </div>
+                
+                <button id="visualize-btn" class="btn btn-success w-100">시각화</button>
+                
+                <input type="hidden" id="selected-corp-code">
+                <input type="hidden" id="selected-corp-name">
+            </div>
+        </div>
+        
+        <div id="visualization-loading" class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>재무제표 데이터 시각화 중...</p>
+        </div>
+        
+        <div id="visualization-error" class="error-message"></div>
+        
+        <div id="result-container" class="result-container">
+            <h2 id="result-title" class="text-center mb-4"></h2>
+            
+            <!-- AI 분석 섹션을 상단으로 이동 -->
+            <div class="ai-analysis-section">
+                <div class="chart-title">AI 재무 분석</div>
+                <div class="card">
+                    <div class="card-body">
+                        <div id="ai-analysis-loading" class="text-center my-4" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">AI가 재무제표를 분석 중입니다...</p>
+                        </div>
+                        <div id="ai-analysis-content" class="p-3 bg-light rounded">
+                            <p class="text-center text-muted">AI 분석 버튼을 클릭하여 재무제표에 대한 AI 분석을 확인하세요.</p>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button id="ai-analyze-btn" class="btn btn-warning">AI 분석 시작</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">재무상태표</div>
+                <img id="bs-chart" class="chart-image" src="" alt="재무상태표">
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">자산 = 부채 + 자본 관계</div>
+                <img id="balance-chart" class="chart-image" src="" alt="자산-부채-자본 관계">
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">손익계산서</div>
+                <img id="is-chart" class="chart-image" src="" alt="손익계산서">
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-title">주요 재무비율</div>
+                <img id="ratio-chart" class="chart-image" src="" alt="주요 재무비율">
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 사업연도 드롭다운 초기화
+            initializeYearDropdown();
+            
+            // 회사 검색 버튼 클릭 이벤트
+            document.getElementById('search-btn').addEventListener('click', function() {
+                searchCompany();
+            });
+            
+            // 회사명 입력 필드에서 엔터키 이벤트
+            document.getElementById('company-name').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchCompany();
+                }
+            });
+            
+            // 시각화 버튼 클릭 이벤트
+            document.getElementById('visualize-btn').addEventListener('click', function() {
+                visualizeFinancials();
+            });
+            
+            // AI 분석 버튼 클릭 이벤트
+            document.getElementById('ai-analyze-btn').addEventListener('click', function() {
+                analyzeFinancials();
+            });
+            
+            // 사업연도 드롭다운 초기화 함수
+            function initializeYearDropdown() {
+                const yearSelect = document.getElementById('bsns-year');
+                const currentYear = new Date().getFullYear();
+                
+                // 최근 10년간의 연도 추가
+                for (let year = currentYear; year >= currentYear - 9; year--) {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year + '년';
+                    yearSelect.appendChild(option);
+                }
+            }
+            
+            // 회사 검색 함수
+            function searchCompany() {
+                const companyName = document.getElementById('company-name').value.trim();
+                
+                if (!companyName) {
+                    showError('company-search-error', '회사명을 입력해주세요.');
+                    return;
+                }
+                
+                // 로딩 표시
+                document.getElementById('company-search-loading').style.display = 'block';
+                document.getElementById('company-search-error').style.display = 'none';
+                document.getElementById('company-list').style.display = 'none';
+                
+                // API 호출
+                const formData = new FormData();
+                formData.append('company_name', companyName);
+                
+                fetch('/api/search', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // 로딩 숨기기
+                    document.getElementById('company-search-loading').style.display = 'none';
+                    
+                    if (data.error) {
+                        showError('company-search-error', data.error);
+                        return;
+                    }
+                    
+                    // 회사 목록 표시
+                    displayCompanyList(data.companies);
+                })
+                .catch(error => {
+                    document.getElementById('company-search-loading').style.display = 'none';
+                    showError('company-search-error', '오류가 발생했습니다: ' + error.message);
+                });
+            }
+            
+            // 회사 목록 표시 함수
+            function displayCompanyList(companies) {
+                const companyItemsContainer = document.getElementById('company-items');
+                companyItemsContainer.innerHTML = '';
+                
+                companies.forEach(company => {
+                    const stockCode = company.stock_code ? company.stock_code : '비상장';
+                    
+                    const companyItem = document.createElement('div');
+                    companyItem.className = 'company-item';
+                    companyItem.innerHTML = `
+                        <strong>${company.corp_name}</strong>
+                        <div>고유번호: ${company.corp_code}, 종목코드: ${stockCode}</div>
+                    `;
+                    
+                    companyItem.addEventListener('click', function() {
+                        selectCompany(company.corp_code, company.corp_name);
+                    });
+                    
+                    companyItemsContainer.appendChild(companyItem);
+                });
+                
+                document.getElementById('company-list').style.display = 'block';
+            }
+            
+            // 회사 선택 함수
+            function selectCompany(corpCode, corpName) {
+                document.getElementById('selected-corp-code').value = corpCode;
+                document.getElementById('selected-corp-name').value = corpName;
+                document.getElementById('financial-form').style.display = 'block';
+                
+                // 현재 연도를 기본값으로 설정
+                const currentYear = new Date().getFullYear();
+                document.getElementById('bsns-year').value = currentYear;
+            }
+            
+            // 재무제표 시각화 함수
+            function visualizeFinancials() {
+                const corpCode = document.getElementById('selected-corp-code').value;
+                const corpName = document.getElementById('selected-corp-name').value;
+                const bsnsYear = document.getElementById('bsns-year').value;
+                const reprtCode = document.getElementById('reprt-code').value;
+                
+                if (!corpCode || !corpName) {
+                    showError('visualization-error', '회사를 선택해주세요.');
+                    return;
+                }
+                
+                if (!bsnsYear) {
+                    showError('visualization-error', '사업연도를 선택해주세요.');
+                    return;
+                }
+                
+                // 로딩 표시
+                document.getElementById('visualization-loading').style.display = 'block';
+                document.getElementById('visualization-error').style.display = 'none';
+                document.getElementById('result-container').style.display = 'none';
+                
+                // API 호출
+                const formData = new FormData();
+                formData.append('corp_code', corpCode);
+                formData.append('corp_name', corpName);
+                formData.append('bsns_year', bsnsYear);
+                formData.append('reprt_code', reprtCode);
+                
+                fetch('/api/visualize', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // 로딩 숨기기
+                    document.getElementById('visualization-loading').style.display = 'none';
+                    
+                    if (data.error) {
+                        showError('visualization-error', data.error);
+                        return;
+                    }
+                    
+                    // 결과 표시
+                    displayResults(data);
+                })
+                .catch(error => {
+                    document.getElementById('visualization-loading').style.display = 'none';
+                    showError('visualization-error', '오류가 발생했습니다: ' + error.message);
+                });
+            }
+            
+            // 결과 표시 함수
+            function displayResults(data) {
+                // 제목 설정
+                document.getElementById('result-title').textContent = `${data.corp_name} ${data.bsns_year}년 재무제표`;
+                
+                // 이미지 설정
+                if (data.bs_img) {
+                    document.getElementById('bs-chart').src = 'data:image/png;base64,' + data.bs_img;
+                    document.getElementById('bs-chart').parentElement.style.display = 'block';
+                } else {
+                    document.getElementById('bs-chart').parentElement.style.display = 'none';
+                }
+                
+                if (data.balance_img) {
+                    document.getElementById('balance-chart').src = 'data:image/png;base64,' + data.balance_img;
+                    document.getElementById('balance-chart').parentElement.style.display = 'block';
+                } else {
+                    document.getElementById('balance-chart').parentElement.style.display = 'none';
+                }
+                
+                if (data.is_img) {
+                    document.getElementById('is-chart').src = 'data:image/png;base64,' + data.is_img;
+                    document.getElementById('is-chart').parentElement.style.display = 'block';
+                } else {
+                    document.getElementById('is-chart').parentElement.style.display = 'none';
+                }
+                
+                if (data.ratio_img) {
+                    document.getElementById('ratio-chart').src = 'data:image/png;base64,' + data.ratio_img;
+                    document.getElementById('ratio-chart').parentElement.style.display = 'block';
+                } else {
+                    document.getElementById('ratio-chart').parentElement.style.display = 'none';
+                }
+                
+                // 결과 컨테이너 표시
+                document.getElementById('result-container').style.display = 'block';
+                
+                // 결과로 스크롤
+                document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' });
+                
+                // 콘솔에 디버그 정보 출력
+                console.log('Received data:', data);
+                console.log('BS Image length:', data.bs_img ? data.bs_img.length : 'null');
+                console.log('Balance Image length:', data.balance_img ? data.balance_img.length : 'null');
+                console.log('IS Image length:', data.is_img ? data.is_img.length : 'null');
+                console.log('Ratio Image length:', data.ratio_img ? data.ratio_img.length : 'null');
+            }
+            
+            // AI 재무 분석 함수
+            function analyzeFinancials() {
+                const corpCode = document.getElementById('selected-corp-code').value;
+                const corpName = document.getElementById('selected-corp-name').value;
+                const bsnsYear = document.getElementById('bsns-year').value;
+                const reprtCode = document.getElementById('reprt-code').value;
+                
+                if (!corpCode || !corpName) {
+                    showError('visualization-error', '회사를 선택해주세요.');
+                    return;
+                }
+                
+                if (!bsnsYear) {
+                    showError('visualization-error', '사업연도를 선택해주세요.');
+                    return;
+                }
+                
+                // AI 분석 중 로딩 표시
+                document.getElementById('ai-analysis-loading').style.display = 'block';
+                document.getElementById('ai-analysis-content').innerHTML = '';
+                document.getElementById('ai-analyze-btn').disabled = true;
+                
+                // API 호출
+                const formData = new FormData();
+                formData.append('corp_code', corpCode);
+                formData.append('corp_name', corpName);
+                formData.append('bsns_year', bsnsYear);
+                formData.append('reprt_code', reprtCode);
+                
+                fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // 로딩 숨기기
+                    document.getElementById('ai-analysis-loading').style.display = 'none';
+                    document.getElementById('ai-analyze-btn').disabled = false;
+                    
+                    if (data.error) {
+                        document.getElementById('ai-analysis-content').innerHTML = `<p class="text-danger">${data.error}</p>`;
+                        return;
+                    }
+                    
+                    // AI 분석 결과 표시
+                    const analysisHtml = data.analysis.replace(/\n/g, '<br>');
+                    document.getElementById('ai-analysis-content').innerHTML = `<div class="analysis-text">${analysisHtml}</div>`;
+                    
+                    // AI 분석 섹션으로 스크롤
+                    document.getElementById('ai-analysis-content').scrollIntoView({ behavior: 'smooth' });
+                })
+                .catch(error => {
+                    document.getElementById('ai-analysis-loading').style.display = 'none';
+                    document.getElementById('ai-analyze-btn').disabled = false;
+                    document.getElementById('ai-analysis-content').innerHTML = `<p class="text-danger">오류가 발생했습니다: ${error.message}</p>`;
+                });
+            }
+            
+            // 오류 메시지 표시 함수
+            function showError(elementId, message) {
+                const errorElement = document.getElementById(elementId);
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html> 
