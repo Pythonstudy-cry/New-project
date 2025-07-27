@@ -27,6 +27,10 @@ logger = logging.getLogger(__name__)
 # 한글 폰트 설정
 def set_korean_font():
     try:
+        # 폰트 경고 무시 설정
+        import warnings
+        warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
+        
         # Docker 환경에서는 기본 폰트 사용
         if os.path.exists('/app'):
             # Docker 환경
@@ -66,6 +70,9 @@ def set_korean_font():
         # 그래프 스타일 설정
         plt.style.use('default')
         sns.set_palette("husl")
+        
+        # 폰트 캐시 초기화
+        font_manager._rebuild()
         
         return True
     except Exception as e:
@@ -149,6 +156,10 @@ def process_and_visualize(financial_data):
     if not financial_data or 'list' not in financial_data:
         logger.warning("재무제표 데이터가 비어있거나 예상과 다릅니다.")
         return None, None, None, None
+    
+    # 폰트 경고 무시 설정
+    import warnings
+    warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
     
     # 데이터프레임 생성
     df = pd.DataFrame(financial_data['list'])
@@ -237,162 +248,150 @@ def process_and_visualize(financial_data):
                 current_liabilities = round(current_liabilities)
                 non_current_liabilities = round(non_current_liabilities)
                 
-                # 시각화
-                fig, ax = plt.subplots(figsize=(16, 12))
+                # 자산 = 부채 + 자본 관계 시각화 (텍스트 기반)
+                fig, ax = plt.subplots(figsize=(12, 8))
+                ax.axis('off')
+                
+                # 배경 박스 그리기
+                rect = plt.Rectangle((0.1, 0.1), 0.8, 0.8, linewidth=3, edgecolor='#2c3e50', facecolor='none')
+                ax.add_patch(rect)
                 
                 # 제목
-                ax.text(0.5, 0.95, '자산 = 부채 + 자본', fontsize=24, fontweight='bold', ha='center', va='center', color='#2c3e50')
-                ax.text(0.5, 0.9, '회사의 모든 자산은 부채와 자본으로 구성됩니다', fontsize=16, ha='center', va='center', color='#7f8c8d')
+                ax.text(0.5, 0.95, '자산 = 부채 + 자본', fontsize=20, fontweight='bold', 
+                       ha='center', va='center', color='#2c3e50')
                 
-                # 왼쪽: 자산 (큰 박스)
-                rect_assets = plt.Rectangle((0.05, 0.4), 0.35, 0.4, linewidth=3, edgecolor='#3498db', facecolor='#3498db', alpha=0.1)
-                ax.add_patch(rect_assets)
-                ax.text(0.225, 0.75, '자산', fontsize=20, fontweight='bold', ha='center', va='center', color='#2c3e50')
-                ax.text(0.225, 0.7, f'{assets:,}억원', fontsize=16, ha='center', va='center', color='#3498db', fontweight='bold')
+                # 자산 부분 (왼쪽)
+                ax.text(0.25, 0.75, '자산', fontsize=16, fontweight='bold', 
+                       ha='center', va='center', color='#2c3e50')
+                ax.text(0.25, 0.65, f'{assets:,}억원', fontsize=14, 
+                       ha='center', va='center', color='#2c3e50')
                 
-                # 자산 세부
-                if assets > 0:
-                    # 유동자산 (작은 박스)
-                    rect_current_assets = plt.Rectangle((0.08, 0.45), 0.12, 0.15, linewidth=2, edgecolor='#27ae60', facecolor='#27ae60', alpha=0.7)
-                    ax.add_patch(rect_current_assets)
-                    ax.text(0.14, 0.55, '유동자산', fontsize=12, fontweight='bold', ha='center', va='center', color='white')
-                    ax.text(0.14, 0.5, f'{current_assets:,}억원', fontsize=10, ha='center', va='center', color='white')
-                    
-                    # 비유동자산 (작은 박스)
-                    rect_non_current_assets = plt.Rectangle((0.25, 0.45), 0.12, 0.15, linewidth=2, edgecolor='#f39c12', facecolor='#f39c12', alpha=0.7)
-                    ax.add_patch(rect_non_current_assets)
-                    ax.text(0.31, 0.55, '비유동자산', fontsize=12, fontweight='bold', ha='center', va='center', color='white')
-                    ax.text(0.31, 0.5, f'{non_current_assets:,}억원', fontsize=10, ha='center', va='center', color='white')
+                # 자산 세부 내역
+                ax.text(0.25, 0.55, f'유동자산: {current_assets:,}억원', fontsize=12, 
+                       ha='center', va='center', color='#3498db')
+                ax.text(0.25, 0.45, f'비유동자산: {non_current_assets:,}억원', fontsize=12, 
+                       ha='center', va='center', color='#e74c3c')
                 
-                # 등호
-                ax.text(0.5, 0.6, '=', fontsize=40, fontweight='bold', ha='center', va='center', color='#2c3e50')
+                # 부채 + 자본 부분 (오른쪽)
+                ax.text(0.75, 0.75, '부채 + 자본', fontsize=16, fontweight='bold', 
+                       ha='center', va='center', color='#2c3e50')
+                ax.text(0.75, 0.65, f'{liabilities + equity:,}억원', fontsize=14, 
+                       ha='center', va='center', color='#2c3e50')
                 
-                # 오른쪽: 부채 + 자본 (큰 박스)
-                rect_liabilities_equity = plt.Rectangle((0.6, 0.4), 0.35, 0.4, linewidth=3, edgecolor='#e74c3c', facecolor='#e74c3c', alpha=0.1)
-                ax.add_patch(rect_liabilities_equity)
-                ax.text(0.775, 0.75, '부채 + 자본', fontsize=18, fontweight='bold', ha='center', va='center', color='#2c3e50')
-                ax.text(0.775, 0.7, f'{liabilities + equity:,}억원', fontsize=16, ha='center', va='center', color='#e74c3c', fontweight='bold')
+                # 부채 세부 내역
+                ax.text(0.75, 0.55, f'유동부채: {current_liabilities:,}억원', fontsize=12, 
+                       ha='center', va='center', color='#f39c12')
+                ax.text(0.75, 0.45, f'비유동부채: {non_current_liabilities:,}억원', fontsize=12, 
+                       ha='center', va='center', color='#9b59b6')
                 
-                # 부채 세부
-                if liabilities > 0:
-                    # 유동부채 (작은 박스)
-                    rect_current_liabilities = plt.Rectangle((0.63, 0.45), 0.12, 0.15, linewidth=2, edgecolor='#e67e22', facecolor='#e67e22', alpha=0.7)
-                    ax.add_patch(rect_current_liabilities)
-                    ax.text(0.69, 0.55, '유동부채', fontsize=12, fontweight='bold', ha='center', va='center', color='white')
-                    ax.text(0.69, 0.5, f'{current_liabilities:,}억원', fontsize=10, ha='center', va='center', color='white')
-                    
-                    # 비유동부채 (작은 박스)
-                    rect_non_current_liabilities = plt.Rectangle((0.8, 0.45), 0.12, 0.15, linewidth=2, edgecolor='#c0392b', facecolor='#c0392b', alpha=0.7)
-                    ax.add_patch(rect_non_current_liabilities)
-                    ax.text(0.86, 0.55, '비유동부채', fontsize=12, fontweight='bold', ha='center', va='center', color='white')
-                    ax.text(0.86, 0.5, f'{non_current_liabilities:,}억원', fontsize=10, ha='center', va='center', color='white')
+                # 자본
+                ax.text(0.75, 0.35, f'자본: {equity:,}억원', fontsize=12, 
+                       ha='center', va='center', color='#27ae60')
                 
-                # 자본 (별도 박스)
-                rect_equity = plt.Rectangle((0.63, 0.25), 0.12, 0.12, linewidth=2, edgecolor='#27ae60', facecolor='#27ae60', alpha=0.7)
-                ax.add_patch(rect_equity)
-                ax.text(0.69, 0.31, '자본', fontsize=12, fontweight='bold', ha='center', va='center', color='white')
-                ax.text(0.69, 0.26, f'{equity:,}억원', fontsize=10, ha='center', va='center', color='white')
+                # 등호 표시
+                ax.text(0.5, 0.25, '=', fontsize=24, fontweight='bold', 
+                       ha='center', va='center', color='#e74c3c')
                 
-                # 설명
-                ax.text(0.5, 0.2, '자산 = 부채 + 자본', fontsize=18, fontweight='bold', ha='center', va='center', color='#2c3e50')
-                ax.text(0.5, 0.15, f'{assets:,} = {liabilities:,} + {equity:,}', fontsize=16, ha='center', va='center', color='#7f8c8d')
-                
-                # 추가 설명
-                ax.text(0.5, 0.08, '💡 자산: 회사가 보유한 모든 재산', fontsize=14, ha='center', va='center', color='#3498db')
-                ax.text(0.5, 0.05, '💡 부채: 회사가 갚아야 할 모든 빚', fontsize=14, ha='center', va='center', color='#e74c3c')
-                ax.text(0.5, 0.02, '💡 자본: 회사 소유주가 투자한 돈', fontsize=14, ha='center', va='center', color='#27ae60')
-                
-                # 축 제거
-                ax.set_xlim(0, 1)
-                ax.set_ylim(0, 1)
-                ax.axis('off')
+                # 검증 메시지
+                if abs(assets - (liabilities + equity)) < 1:  # 1억원 이내 차이
+                    ax.text(0.5, 0.15, '✓ 자산 = 부채 + 자본 (균형)', fontsize=12, 
+                           ha='center', va='center', color='#27ae60', fontweight='bold')
+                else:
+                    ax.text(0.5, 0.15, f'⚠ 차이: {abs(assets - (liabilities + equity)):,.0f}억원', fontsize=12, 
+                           ha='center', va='center', color='#e74c3c', fontweight='bold')
                 
                 plt.tight_layout()
                 balance_img = fig_to_base64(fig)
             except Exception as e:
                 logger.error(f"자산-부채-자본 관계 그래프 생성 중 오류 발생: {e}")
-        
-        # 3. 손익계산서 시각화 (당기, 전기만)
-        if not is_data.empty:
-            # 문자열 금액을 숫자로 변환
-            for col in ['thstrm_amount', 'frmtrm_amount']:
-                if col in is_data.columns:
-                    is_data.loc[:, col] = is_data[col].str.replace(',', '').astype(float) / 1_000_000_000  # 10억 단위로 변환
             
-            # 당기, 전기 데이터만 준비
-            current_year = is_data[['account_nm', 'thstrm_amount']].rename(columns={'thstrm_amount': '당기'})
-            prev_year = is_data[['account_nm', 'frmtrm_amount']].rename(columns={'frmtrm_amount': '전기'})
-            
-            # 데이터 병합
-            merged_data = current_year.merge(prev_year, on='account_nm')
-            merged_data = merged_data.set_index('account_nm')
-            
-            # 그래프 그리기
-            fig, ax = plt.subplots(figsize=(10, 6))
-            merged_data.plot(kind='bar', ax=ax, color=['#3498db', '#e74c3c'])
-            plt.title('손익계산서 (단위: 10억원)', fontsize=16, fontweight='bold')
-            plt.ylabel('금액 (10억원)')
-            plt.xticks(rotation=0)
-            plt.grid(axis='y', linestyle='--', alpha=0.7)
-            
-            # 값 표시
-            for container in ax.containers:
-                ax.bar_label(container, fmt='%.1f')
-            
-            plt.tight_layout()
-            is_img = fig_to_base64(fig)
-        
-        # 4. 주요 재무비율 계산 및 시각화 (5각형)
-        if not bs_data.empty and not is_data.empty:
-            try:
-                # 이미 숫자로 변환된 데이터 사용
-                total_assets = bs_data.loc[bs_data['account_nm'] == '자산총계', 'thstrm_amount'].values[0]
-                total_equity = bs_data.loc[bs_data['account_nm'] == '자본총계', 'thstrm_amount'].values[0]
-                total_liabilities = bs_data.loc[bs_data['account_nm'] == '부채총계', 'thstrm_amount'].values[0]
+            # 3. 손익계산서 시각화 (당기, 전기만)
+            if not is_data.empty:
+                # 문자열 금액을 숫자로 변환
+                for col in ['thstrm_amount', 'frmtrm_amount']:
+                    if col in is_data.columns:
+                        is_data.loc[:, col] = is_data[col].str.replace(',', '').astype(float) / 1_000_000_000  # 10억 단위로 변환
                 
-                sales = is_data.loc[is_data['account_nm'] == '매출액', 'thstrm_amount'].values[0]
-                operating_profit = is_data.loc[is_data['account_nm'] == '영업이익', 'thstrm_amount'].values[0]
-                net_income = is_data.loc[is_data['account_nm'] == '당기순이익', 'thstrm_amount'].values[0]
+                # 당기, 전기 데이터만 준비
+                current_year = is_data[['account_nm', 'thstrm_amount']].rename(columns={'thstrm_amount': '당기'})
+                prev_year = is_data[['account_nm', 'frmtrm_amount']].rename(columns={'frmtrm_amount': '전기'})
                 
-                # 재무비율 계산
-                debt_ratio = (total_liabilities / total_equity) * 100  # 부채비율
-                roe = (net_income / total_equity) * 100  # 자기자본이익률
-                roa = (net_income / total_assets) * 100  # 총자산이익률
-                operating_margin = (operating_profit / sales) * 100  # 영업이익률
-                net_profit_margin = (net_income / sales) * 100  # 순이익률
+                # 데이터 병합
+                merged_data = current_year.merge(prev_year, on='account_nm')
+                merged_data = merged_data.set_index('account_nm')
                 
-                # 5각형 레이더 차트 생성
-                categories = ['부채비율', 'ROE', 'ROA', '영업이익률', '순이익률']
-                values = [debt_ratio, roe, roa, operating_margin, net_profit_margin]
-                
-                # 각도 계산
-                angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
-                values += values[:1]  # 첫 번째 값을 마지막에 추가하여 닫힌 도형 만들기
-                angles += angles[:1]  # 첫 번째 각도를 마지막에 추가
-                
-                fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(projection='polar'))
-                
-                # 5각형 그리기
-                ax.plot(angles, values, 'o-', linewidth=2, color='#3498db', markersize=8)
-                ax.fill(angles, values, alpha=0.25, color='#3498db')
-                
-                # 축 레이블 설정
-                ax.set_xticks(angles[:-1])
-                ax.set_xticklabels(categories, fontsize=12, fontweight='bold')
-                
-                # 그리드 설정
-                ax.grid(True, alpha=0.3)
-                
-                # 제목
-                plt.title('주요 재무비율 (5각형)', fontsize=16, fontweight='bold', pad=20)
+                # 그래프 그리기
+                fig, ax = plt.subplots(figsize=(10, 6))
+                merged_data.plot(kind='bar', ax=ax, color=['#3498db', '#e74c3c'])
+                plt.title('손익계산서 (단위: 10억원)', fontsize=16, fontweight='bold')
+                plt.ylabel('금액 (10억원)')
+                plt.xticks(rotation=0)
+                plt.grid(axis='y', linestyle='--', alpha=0.7)
                 
                 # 값 표시
-                for i, (angle, value) in enumerate(zip(angles[:-1], values[:-1])):
-                    ax.text(angle, value + max(values) * 0.05, f'{value:.2f}%', 
-                           ha='center', va='center', fontweight='bold', fontsize=10)
+                for container in ax.containers:
+                    ax.bar_label(container, fmt='%.1f')
                 
                 plt.tight_layout()
-                ratio_img = fig_to_base64(fig)
+                is_img = fig_to_base64(fig)
+            
+            # 4. 주요 재무비율 시각화 (5각형 레이더 차트)
+            try:
+                # 재무비율 계산
+                if not bs_data.empty and not is_data.empty:
+                    # 당기 데이터 추출
+                    bs_current = bs_data[['account_nm', 'thstrm_amount']].set_index('account_nm')
+                    is_current = is_data[['account_nm', 'thstrm_amount']].set_index('account_nm')
+                    
+                    # 문자열 금액을 숫자로 변환
+                    for df in [bs_current, is_current]:
+                        df['thstrm_amount'] = df['thstrm_amount'].str.replace(',', '').astype(float)
+                    
+                    # 재무비율 계산
+                    total_assets = bs_current.loc['자산총계', 'thstrm_amount']
+                    total_liabilities = bs_current.loc['부채총계', 'thstrm_amount']
+                    total_equity = bs_current.loc['자본총계', 'thstrm_amount']
+                    sales = is_current.loc['매출액', 'thstrm_amount']
+                    operating_income = is_current.loc['영업이익', 'thstrm_amount']
+                    net_income = is_current.loc['당기순이익', 'thstrm_amount']
+                    
+                    # 재무비율 계산
+                    debt_ratio = (total_liabilities / total_equity) * 100  # 부채비율
+                    roa = (net_income / total_assets) * 100  # ROA
+                    roe = (net_income / total_equity) * 100  # ROE
+                    operating_margin = (operating_income / sales) * 100  # 영업이익률
+                    net_margin = (net_income / sales) * 100  # 순이익률
+                    
+                    # 레이더 차트 그리기
+                    categories = ['부채비율', 'ROA', 'ROE', '영업이익률', '순이익률']
+                    values = [debt_ratio, roa, roe, operating_margin, net_margin]
+                    
+                    # 각도 계산
+                    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
+                    values += values[:1]  # 첫 번째 값을 마지막에 추가하여 닫힌 도형 만들기
+                    angles += angles[:1]
+                    
+                    fig, ax = plt.subplots(figsize=(10, 8), subplot_kw=dict(projection='polar'))
+                    ax.plot(angles, values, 'o-', linewidth=2, color='#3498db')
+                    ax.fill(angles, values, alpha=0.25, color='#3498db')
+                    
+                    # 축 레이블 설정
+                    ax.set_xticks(angles[:-1])
+                    ax.set_xticklabels(categories)
+                    
+                    # 그리드 설정
+                    ax.grid(True)
+                    
+                    # 제목
+                    plt.title('주요 재무비율 (5각형 레이더 차트)', fontsize=16, fontweight='bold', pad=20)
+                    
+                    # 값 표시
+                    for i, (angle, value) in enumerate(zip(angles[:-1], values[:-1])):
+                        ax.text(angle, value + max(values) * 0.1, f'{value:.1f}%', 
+                               ha='center', va='center', fontweight='bold')
+                    
+                    plt.tight_layout()
+                    ratio_img = fig_to_base64(fig)
             except (IndexError, ValueError) as e:
                 logger.error(f"재무비율 계산 중 오류 발생: {e}")
     except Exception as e:
