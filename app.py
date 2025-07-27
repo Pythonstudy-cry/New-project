@@ -449,27 +449,46 @@ def visualize():
 # AI 재무 분석 API
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
-    corp_code = request.form.get('corp_code')
-    corp_name = request.form.get('corp_name')
-    bsns_year = request.form.get('bsns_year')
-    reprt_code = request.form.get('reprt_code')
-    
-    if not all([corp_code, corp_name, bsns_year, reprt_code]):
-        return jsonify({'error': '모든 필수 항목을 입력해주세요.'})
-    
-    financial_data = get_financial_data(corp_code, bsns_year, reprt_code)
-    
-    if not financial_data:
-        return jsonify({'error': '재무제표 데이터를 가져오는데 실패했습니다.'})
-    
-    # 동기 함수로 직접 호출
-    analysis_result = analyze_financial_data(financial_data)
-    
-    return jsonify({
-        'analysis': analysis_result,
-        'corp_name': corp_name,
-        'bsns_year': bsns_year
-    })
+    try:
+        corp_code = request.form.get('corp_code')
+        corp_name = request.form.get('corp_name')
+        bsns_year = request.form.get('bsns_year')
+        reprt_code = request.form.get('reprt_code')
+        
+        if not all([corp_code, corp_name, bsns_year, reprt_code]):
+            return jsonify({'error': '모든 필수 항목을 입력해주세요.'})
+        
+        financial_data = get_financial_data(corp_code, bsns_year, reprt_code)
+        
+        if not financial_data:
+            return jsonify({'error': '재무제표 데이터를 가져오는데 실패했습니다.'})
+        
+        # AI 분석 실행 (fallback 포함)
+        analysis_result = analyze_financial_data(financial_data)
+        
+        # 분석 결과가 오류 메시지인지 확인
+        if analysis_result and not analysis_result.startswith('재무 데이터를 분석할 수 없습니다'):
+            return jsonify({
+                'analysis': analysis_result,
+                'corp_name': corp_name,
+                'bsns_year': bsns_year
+            })
+        else:
+            # fallback 분석이 제공된 경우
+            return jsonify({
+                'analysis': analysis_result,
+                'corp_name': corp_name,
+                'bsns_year': bsns_year,
+                'note': '기본 재무 분석이 제공되었습니다.'
+            })
+            
+    except Exception as e:
+        logger.error(f"AI 분석 API 오류: {e}")
+        return jsonify({
+            'error': 'AI 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+            'corp_name': corp_name if 'corp_name' in locals() else '',
+            'bsns_year': bsns_year if 'bsns_year' in locals() else ''
+        })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000))) 
