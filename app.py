@@ -22,22 +22,33 @@ from finance_analysis import analyze_financial_data
 # 한글 폰트 설정
 def set_korean_font():
     try:
+        # Docker 환경에서는 기본 폰트 사용
+        if os.path.exists('/app'):
+            # Docker 환경
+            plt.rc('font', family='DejaVu Sans')
         # 윈도우의 경우 맑은 고딕 폰트 사용
-        if sys.platform == 'win32':
+        elif sys.platform == 'win32':
             font_path = "C:/Windows/Fonts/malgun.ttf"
-            font_name = font_manager.FontProperties(fname=font_path).get_name()
-            plt.rc('font', family=font_name)
+            if os.path.exists(font_path):
+                font_name = font_manager.FontProperties(fname=font_path).get_name()
+                plt.rc('font', family=font_name)
+            else:
+                plt.rc('font', family='DejaVu Sans')
         # Mac의 경우 애플고딕 폰트 사용
         elif sys.platform == 'darwin':
             rc('font', family='AppleGothic')
         # 리눅스의 경우 나눔고딕 폰트 사용
         else:
             rc('font', family='NanumGothic')
+        
         # 마이너스 기호 표시 설정
         matplotlib.rcParams['axes.unicode_minus'] = False
         return True
-    except:
-        print("한글 폰트 설정에 실패했습니다. 그래프의 한글이 깨질 수 있습니다.")
+    except Exception as e:
+        print(f"한글 폰트 설정에 실패했습니다: {e}")
+        # 기본 폰트로 설정
+        plt.rc('font', family='DejaVu Sans')
+        matplotlib.rcParams['axes.unicode_minus'] = False
         return False
 
 # .env 파일에서 환경변수 로드
@@ -52,6 +63,9 @@ if not API_KEY:
 
 # Flask 앱 생성
 app = Flask(__name__)
+
+# 한글 폰트 설정 실행
+set_korean_font()
 
 # 데이터베이스 존재 여부 확인
 def check_database():
