@@ -203,10 +203,10 @@ def process_and_visualize(financial_data):
     try:
         # 1. 재무상태표 시각화 (당기, 전기만) - 이전과 동일
         if not bs_data.empty:
-            # 문자열 금액을 숫자로 변환
+            # 문자열 금액을 숫자로 변환 (안전한 처리)
             for col in ['thstrm_amount', 'frmtrm_amount']:
                 if col in bs_data.columns:
-                    bs_data.loc[:, col] = bs_data[col].str.replace(',', '').astype(float) / 1_000_000_000  # 10억 단위로 변환
+                    bs_data.loc[:, col] = bs_data[col].astype(str).str.replace(',', '').replace('', '0').astype(float) / 1_000_000_000  # 10억 단위로 변환
             
             # 당기, 전기 데이터만 준비
             current_year = bs_data[['account_nm', 'thstrm_amount']].rename(columns={'thstrm_amount': '당기'})
@@ -236,8 +236,8 @@ def process_and_visualize(financial_data):
                 # 당기 데이터 추출 (10억원 단위)
                 balance_current_year = balance_data[['account_nm', 'thstrm_amount']].rename(columns={'thstrm_amount': '당기'})
                 
-                # 문자열 금액을 숫자로 변환 (10억 단위)
-                balance_current_year.loc[:, '당기'] = balance_current_year['당기'].str.replace(',', '').astype(float) / 1_000_000_000
+                # 문자열 금액을 숫자로 변환 (10억 단위, 안전한 처리)
+                balance_current_year.loc[:, '당기'] = balance_current_year['당기'].astype(str).str.replace(',', '').replace('', '0').astype(float) / 1_000_000_000
                 
                 assets = balance_current_year.loc[balance_current_year['account_nm'] == '자산총계', '당기'].values[0]
                 liabilities = balance_current_year.loc[balance_current_year['account_nm'] == '부채총계', '당기'].values[0]
@@ -317,10 +317,10 @@ def process_and_visualize(financial_data):
             
             # 3. 손익계산서 시각화 (당기, 전기만)
             if not is_data.empty:
-                # 문자열 금액을 숫자로 변환
+                # 문자열 금액을 숫자로 변환 (안전한 처리)
                 for col in ['thstrm_amount', 'frmtrm_amount']:
                     if col in is_data.columns:
-                        is_data.loc[:, col] = is_data[col].str.replace(',', '').astype(float) / 1_000_000_000  # 10억 단위로 변환
+                        is_data.loc[:, col] = is_data[col].astype(str).str.replace(',', '').replace('', '0').astype(float) / 1_000_000_000  # 10억 단위로 변환
                 
                 # 당기, 전기 데이터만 준비
                 current_year = is_data[['account_nm', 'thstrm_amount']].rename(columns={'thstrm_amount': '당기'})
@@ -353,9 +353,9 @@ def process_and_visualize(financial_data):
                     bs_current = bs_data[['account_nm', 'thstrm_amount']].set_index('account_nm')
                     is_current = is_data[['account_nm', 'thstrm_amount']].set_index('account_nm')
                     
-                    # 문자열 금액을 숫자로 변환
+                    # 문자열 금액을 숫자로 변환 (안전한 처리)
                     for df in [bs_current, is_current]:
-                        df['thstrm_amount'] = df['thstrm_amount'].str.replace(',', '').astype(float)
+                        df['thstrm_amount'] = df['thstrm_amount'].astype(str).str.replace(',', '').replace('', '0').astype(float)
                     
                     # 재무비율 계산
                     total_assets = bs_current.loc['자산총계', 'thstrm_amount']
