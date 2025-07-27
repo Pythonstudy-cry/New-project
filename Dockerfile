@@ -10,7 +10,13 @@ RUN apt-get update && apt-get install -y \
     fonts-dejavu \
     fonts-noto-cjk \
     fonts-noto-cjk-extra \
+    fonts-nanum \
+    fonts-nanum-coding \
+    fonts-nanum-extra \
     && rm -rf /var/lib/apt/lists/*
+
+# 폰트 캐시 업데이트
+RUN fc-cache -fv
 
 # Python 의존성 파일 복사
 COPY requirements.txt .

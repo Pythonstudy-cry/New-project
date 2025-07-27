@@ -31,11 +31,11 @@ def set_korean_font():
         import warnings
         warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
         
-        # Docker 환경에서는 기본 폰트 사용
+        # Docker 환경에서는 Noto Sans CJK 폰트 사용
         if os.path.exists('/app'):
-            # Docker 환경
-            plt.rc('font', family='DejaVu Sans')
-            logger.info("Docker 환경에서 DejaVu Sans 폰트 사용")
+            # Docker 환경 - Noto Sans CJK 사용
+            plt.rc('font', family='Noto Sans CJK KR')
+            logger.info("Docker 환경에서 Noto Sans CJK KR 폰트 사용")
         # 윈도우의 경우 맑은 고딕 폰트 사용
         elif sys.platform == 'win32':
             font_path = "C:/Windows/Fonts/malgun.ttf"
@@ -50,10 +50,10 @@ def set_korean_font():
         elif sys.platform == 'darwin':
             rc('font', family='AppleGothic')
             logger.info("Mac 환경에서 AppleGothic 폰트 사용")
-        # 리눅스의 경우 나눔고딕 폰트 사용
+        # 리눅스의 경우 Noto Sans CJK 폰트 사용
         else:
-            rc('font', family='NanumGothic')
-            logger.info("Linux 환경에서 NanumGothic 폰트 사용")
+            rc('font', family='Noto Sans CJK KR')
+            logger.info("Linux 환경에서 Noto Sans CJK KR 폰트 사용")
         
         # 마이너스 기호 표시 설정
         matplotlib.rcParams['axes.unicode_minus'] = False
@@ -77,8 +77,18 @@ def set_korean_font():
         return True
     except Exception as e:
         logger.error(f"한글 폰트 설정에 실패했습니다: {e}")
-        # 기본 폰트로 설정
-        plt.rc('font', family='DejaVu Sans')
+        # 기본 폰트로 설정 (한글 지원 폰트 우선)
+        try:
+            plt.rc('font', family='Noto Sans CJK KR')
+            logger.info("fallback: Noto Sans CJK KR 폰트 사용")
+        except:
+            try:
+                plt.rc('font', family='NanumGothic')
+                logger.info("fallback: NanumGothic 폰트 사용")
+            except:
+                plt.rc('font', family='DejaVu Sans')
+                logger.info("fallback: DejaVu Sans 폰트 사용")
+        
         matplotlib.rcParams['axes.unicode_minus'] = False
         return False
 
